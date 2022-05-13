@@ -1,0 +1,41 @@
+POST http://127.0.0.1:1234/users
+Content-Type: application/json
+
+{}
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 201, "Response status is not 200");
+});
+%}
+###
+PUT http://127.0.0.1:1234/user/1
+Content-Type: application/json
+
+{}
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 204, "Response status is not 200");
+});
+%}
+###
+PATCH http://127.0.0.1:1234/user/1
+Content-Type: application/json
+
+{}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 204, "Response status is not 200");
+});
+%}
+###
+DELETE http://127.0.0.1:1234/user/1
+Content-Type: application/json
+
+{}
+
+> {%
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 204, "Response status is not 200");
+});
+%}
