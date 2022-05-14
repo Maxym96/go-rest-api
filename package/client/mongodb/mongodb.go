@@ -31,7 +31,7 @@ func NewClient(ctx context.Context, host, port, username, password, database, au
 
 	client, err := mongo.Connect(ctx, clientOption)
 	if err != nil {
-		return nil, fmt.Errorf("failed	 to connect to Mongo DB error: %v", err)
+		return nil, fmt.Errorf("failed to connect to Mongo DB error: %v", err)
 	}
 	if err := client.Ping(ctx, nil); err != nil {
 		return nil, fmt.Errorf("failed to ping to MongoDB due to error: %v", err)
