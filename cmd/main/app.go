@@ -10,10 +10,10 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	author "rest-app/internal/author/db"
 	config2 "rest-app/internal/config"
 	"rest-app/internal/user"
-	"rest-app/internal/user/db"
-	"rest-app/package/client/mongodb"
+	"rest-app/package/client/postgresql"
 	"rest-app/package/logging"
 	"time"
 )
@@ -25,13 +25,27 @@ func main() {
 
 	cfg := config2.GetConfig()
 
-	cfgMongo := cfg.MongoDB
+	/*cfgMongo := cfg.MongoDB
 
 	mongoDBClient, err := mongodb.NewClient(context.Background(), cfgMongo.Host, cfgMongo.Port, cfgMongo.Username, cfgMongo.Password, cfgMongo.Database, cfgMongo.AuthDB)
 	if err != nil {
 		panic(err)
 	}
-	storage := db.NewStorage(mongoDBClient, cfg.MongoDB.Collection, logger)
+	storage := db.NewStorage(mongoDBClient, cfg.MongoDB.Collection, logger)*/
+
+	postgreSQLClient, err := postgresql.NewClient(context.TODO(), 3, cfg.Storage)
+	if err != nil {
+		logger.Fatal(err)
+	}
+	repository := author.NewRepository(postgreSQLClient, logger)
+	all, err := repository.FindAll(context.TODO())
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	for _, ath := range all {
+		logger.Infof("%v", ath)
+	}
 
 	logger.Info("register user handler")
 	handler := user.NewHandler(logger)
