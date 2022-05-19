@@ -10,8 +10,8 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	author "rest-app/internal/author/db"
-	config2 "rest-app/internal/config"
+	"rest-app/internal/config"
+	event "rest-app/internal/event/db"
 	"rest-app/internal/user"
 	"rest-app/package/client/postgresql"
 	"rest-app/package/logging"
@@ -23,29 +23,26 @@ func main() {
 	logger.Info("created router")
 	router := httprouter.New()
 
-	cfg := config2.GetConfig()
+	cfg := config.GetConfig()
 
-	/*cfgMongo := cfg.MongoDB
-
-	mongoDBClient, err := mongodb.NewClient(context.Background(), cfgMongo.Host, cfgMongo.Port, cfgMongo.Username, cfgMongo.Password, cfgMongo.Database, cfgMongo.AuthDB)
-	if err != nil {
-		panic(err)
-	}
-	storage := db.NewStorage(mongoDBClient, cfg.MongoDB.Collection, logger)*/
-
-	postgreSQLClient, err := postgresql.NewClient(context.TODO(), 3, cfg.Storage)
+	postgreSQLClient, err := postgresql.NewClient(context.Background(), cfg.Storage)
 	if err != nil {
 		logger.Fatal(err)
 	}
-	repository := author.NewRepository(postgreSQLClient, logger)
-	all, err := repository.FindAll(context.TODO())
-	if err != nil {
-		logger.Fatal(err)
-	}
+	repository := event.NewRepository(postgreSQLClient, logger)
 
-	for _, ath := range all {
-		logger.Infof("%v", ath)
+	/*	e := event2.Event{
+		ID:          "08f41ec7-c4de-4e62-b8e9-0cb6702859bf",
+		Name:        "Test111111",
+		Description: "Test-Test1111111",
+		DateAndTime: "2022-08-08 00:00:00",
+	}*/
+
+	err = repository.Delete(context.Background(), "e93d8f5a-eec2-4e64-a16f-c0393f2f663a")
+	if err != nil {
+		log.Fatal(err)
 	}
+	fmt.Println(err)
 
 	logger.Info("register user handler")
 	handler := user.NewHandler(logger)
@@ -54,7 +51,7 @@ func main() {
 	start(router, cfg)
 
 }
-func start(router *httprouter.Router, cfg *config2.Config) {
+func start(router *httprouter.Router, cfg *config.Config) {
 	logger := logging.GetLogger()
 	log.Println("start application")
 

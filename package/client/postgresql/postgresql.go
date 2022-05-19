@@ -2,40 +2,30 @@ package postgresql
 
 import (
 	"context"
-	"fmt"
-	"github.com/jackc/pgconn"
-	"github.com/jackc/pgx"
-	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/upper/db/v4"
+	"github.com/upper/db/v4/adapter/postgresql"
 	"log"
 	"rest-app/internal/config"
-	"rest-app/package/utils"
-	"time"
 )
 
-type Client interface {
-	Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error)
-	Query(ctx context.Context, sql string, args ...interface{}) (pgx.Rows, error)
-	QueryRow(ctx context.Context, sql string, args ...interface{}) pgx.Row
-	Begin(ctx context.Context) (pgx.Tx, error)
-}
-
-func NewClient(ctx context.Context, maxAttempts int, st config.StorageConfig) (pool *pgxpool.Pool, err error) {
-
-	dsn := fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", st.Username, st.Password, st.Host, st.Port, st.Database)
-	err = repeateable.DoWithTries(func() error {
-		ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-		defer cancel()
-
-		pool, err = pgxpool.Connect(ctx, dsn)
-		if err != nil {
-			return err
-		}
-		return nil
-
-	}, maxAttempts, 5*time.Second)
+func NewClient(ctx context.Context, st config.StorageConfig) (db *db.Session, err error) {
+	settings := postgresql.ConnectionURL{
+		Database: st.Database,
+		Host:     st.Host,
+		User:     st.Username,
+		Password: st.Password,
+	}
+	sess, err := postgresql.Open(settings)
 
 	if err != nil {
-		log.Fatal("error do with tries postgresql")
+		log.Fatal("postgresql.Open: ", err)
 	}
-	return pool, err
+	//defer sess.Close()
+
+	if err := sess.Ping(); err != nil {
+		log.Fatal("Ping: ", err)
+	}
+	log.Printf("Successfully connected to database: %q", sess.Name())
+
+	return &sess, nil
 }
